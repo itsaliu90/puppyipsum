@@ -4,6 +4,7 @@ var fs = require('fs');
 var request = require('request');
 var path = require('path');
 var gm = require('gm')
+imageMagick = gm.subClass({ imageMagick: true });
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -28,7 +29,7 @@ router.get('/:width/:height', function(req, res, next) {
           var requestStream = request(body.puppy_url).on('error', function(err) {console.log(err)}).pipe(fs.createWriteStream('./public/images/' + timestamp + '.jpg')).on('error', function(err) {console.log('error')})
           requestStream.on('finish', function() {
 
-            gm(path.join(__dirname, '../public/images', timestamp + '.jpg'))
+            imageMagick(path.join(__dirname, '../public/images', timestamp + '.jpg'))
             .resizeExact(width, height)
             .write(path.join(__dirname, '../public/images', timestamp + '.jpg'), function (err) {
               if (!err) console.log('done');
