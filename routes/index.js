@@ -3,6 +3,7 @@ var router = express.Router();
 var fs = require('fs');
 var request = require('request');
 var path = require('path');
+var gm = require('gm')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -24,9 +25,25 @@ router.get('/:width/:height', function(req, res, next) {
         console.log("EXTENSION IS: ", extension)
         if (extension == "jpg") {
           console.log("FINISHED!")
-          var requestStream = request(body.puppy_url).pipe(fs.createWriteStream('./public/images/' + timestamp + '.jpg'))
+          var requestStream = request(body.puppy_url).on('error', function(err) {console.log(err)}).pipe(fs.createWriteStream('./public/images/' + timestamp + '.jpg')).on('error', function(err) {console.log('error')})
           requestStream.on('finish', function() {
-            res.sendFile(path.join(__dirname, '../public/images', timestamp + '.jpg'))
+
+            gm(path.join(__dirname, '../public/images', timestamp + '.jpg'))
+            .resizeExact(width, height)
+            .write(path.join(__dirname, '../public/images', timestamp + '.jpg'), function (err) {
+              if (!err) console.log('done');
+
+                res.sendFile(path.join(__dirname, '../public/images', timestamp + '.jpg'), function(err) {
+                  if (err) {
+                    console.log("ERROR IS: ", err);
+                  }
+                  else {
+                    console.log('Sent!');
+                    fs.unlink(path.join(__dirname, '../public/images', timestamp + '.jpg'))
+                  }
+                })
+
+            });
           })
         } else {
           console.log("LOOPING AGAIN")
